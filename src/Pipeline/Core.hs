@@ -22,30 +22,30 @@ module Pipeline.Core
   ) where
 
 import Control.Monad.Trans.Free
-import Control.Monad.Reader
-import Control.Monad.Writer
-
-type Consumer a m b = FreeT (Reader a) m b
+import Control.Monad.Trans.Class
+import Control.Monad
+ 
+type Consumer a m b = FreeT ((->) a) m b
 
 consume
   :: Monad m
   => Consumer a m a
 consume
-  = liftF ask
+  = liftF id
 
 stdoutLn :: Consumer String IO ()
 stdoutLn
   = forever $
       consume >>= lift . putStrLn
 
-type Producer a m b = FreeT (Writer a) m b
+type Producer a m b = FreeT ((,) a) m b
 
 produce
   :: (Monad m, Monoid a)
   => a
   -> Producer a m ()
-produce
-  = liftF . tell
+produce a
+  = liftF (a, ())
 
 stdinLn
   :: Producer String IO ()
@@ -68,8 +68,8 @@ stdinLn
       case prod' of
         Pure b ->
           pure b
-        Free (runWriter -> (prod', input)) ->
-          prod' *|* runReader f input
+        Free (input, prod') ->
+          prod' *|* f input
 
 infix 5 *|*
 
@@ -139,7 +139,7 @@ prod *|= pipe = do
       case prod' of
         Pure u ->
           pure u
-        Free (runWriter -> (prod', input)) ->
+        Free (input, prod') ->
           prod' *|= f input
     Free (Yield (cont, b)) -> do 
       produce b
@@ -175,7 +175,7 @@ pipe =|* con = do
           input <- consume 
           cont input =|* wrap f
         Free (Yield (cont, input)) ->
-          cont =|* runReader f input
+          cont =|* f input
 
 infixr 6 =|*
 
