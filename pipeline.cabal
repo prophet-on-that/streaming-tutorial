@@ -1,10 +1,10 @@
 name:                pipeline
 version:             0.1
-synopsis:            pipes clone, for education
+synopsis:            Pipes clone, for education.
 
 license:             BSD3
 author:              Alex Bates
-maintainer:          alex.bates@otastech.com
+maintainer:          ard.bates@gmail.com
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  changelog
