@@ -4,16 +4,13 @@ module Pipeline.Core
   ( -- * Consumer
     Consumer
   , consume
-  , stdoutLn
     -- * Producer
   , Producer
   , produce
-  , stdinLn
     -- * Pipe
   , Pipe
   , await
   , yield
-  , dup
     -- * Composition Operators
   , (*|*)
   , (*|=)
@@ -23,7 +20,6 @@ module Pipeline.Core
 
 import Control.Monad.Trans.Free
 import Control.Monad.Trans.Class
-import Control.Monad
  
 type Consumer a m b = FreeT ((->) a) m b
 
@@ -32,11 +28,6 @@ consume
   => Consumer a m a
 consume
   = liftF id
-
-stdoutLn :: Consumer String IO ()
-stdoutLn
-  = forever $
-      consume >>= lift . putStrLn
 
 type Producer a m b = FreeT ((,) a) m b
 
@@ -47,12 +38,6 @@ produce
 produce a
   = liftF (a, ())
 
-stdinLn
-  :: Producer String IO ()
-stdinLn
-  = forever $
-      lift getLine >>= produce
-  
 (*|*)
   :: Monad m
   => Producer a m b
@@ -146,15 +131,6 @@ prod *|= pipe = do
       prod *|= cont
 
 infixl 6 *|=
-
-dup
-  :: Monad m
-  => Pipe a a m u
-dup
-  = forever $ do 
-      a <- await
-      yield a
-      yield a
 
 (=|*)
   :: (Monad m, Monoid b)
