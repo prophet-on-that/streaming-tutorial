@@ -4,7 +4,7 @@ The repository and document contain a derivation of
 [pipes](https://hackage.haskell.org/package/pipes)-like streaming
 abstractions based on *FreeT*, the free monad transformer. The work
 presented here is not new, but simply documents my efforts to
-understand free monads and their relation to streaming. A host of
+understand free monads and their relation to streaming. Several
 excellent resources on these topics are presented [below](#resources).
 
 ## Recap: the free monad of a functor ##
@@ -143,7 +143,7 @@ liftF
 ## A Consumer Type ##
 
 A *Consumer* streaming component is one which consumes a stream of
-values, usually interleaving some effect between consumption. Consider
+values, usually interleaving some effect between consumption.
 
 ```haskell 
 type Consumer a m b = FreeT ((->) a) m b
@@ -371,6 +371,7 @@ infix 7 =|=
 ```
 
 These operators have several properties, which are not proven here:
+
 1. `(=|=)` is associative;
 2. `r *|= s =|= t` is equivalent to `r *|= s *|= t`;
 3. `r =|= s =|* t` is equivalent to `r =|* s =|* t`;
@@ -384,8 +385,8 @@ type `Proxy`, encoding `FreeT` directly and also supporting upstream
 data flow. The primary benefit of this formulation is the conciseness
 of the API: our `(*|*)`, `(*|=)`, `(=|*)` and `(=|=)` operators
 collapse into a single operator, `(>->)`, and the laws given above are
-expressed entirely by the associativity of `(>->)`. Additionally, this
-is before we consider equivalents of `for` and `(>~)`. Of course, we
+expressed entirely by the associativity of `(>->)`. Note that we
+haven't even considered equivalents of `for` and `(>~)` yet! Of course, we
 could completely recover the (unidirectional) *Pipes* approach by
 defining `Producer` and `Consumer` in terms of `Pipe`, and using
 universal quantification in the type signatures of `await` and `yield`
@@ -393,4 +394,7 @@ to prevent producers requesting information and consumers creating it.
 
 ## Resources ##
 
-Blah
+1. [pipes](http://hackage.haskell.org/package/pipes) library.
+2. [free](http://hackage.haskell.org/package/free) library.
+3. [Coroutine Pipelines](https://themonadreader.files.wordpress.com/2011/10/issue19.pdf),
+   The Monad.Reader Issue 19.
