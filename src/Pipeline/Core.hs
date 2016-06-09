@@ -60,13 +60,13 @@ infix 5 *|*
 
 data Step i o u
   = Await (i -> u)
-  | Yield (u, o)
+  | Yield (o, u)
 
 instance Functor (Step i o) where
   fmap f (Await g)
     = Await $ f . g
-  fmap f (Yield (u, o))
-    = Yield (f u, o)
+  fmap f (Yield (o, u))
+    = Yield (o, f u)
 
 type Pipe i o m u = FreeT (Step i o) m u
 
@@ -81,7 +81,7 @@ yield
   => o
   -> Pipe i o m ()
 yield o
-  = liftF $ Yield ((), o)
+  = liftF $ Yield (o, ())
 
 (=|=)
   :: Monad m
@@ -101,9 +101,9 @@ up =|= down = do
         Free (Await cont) -> do
           input <- await
           cont input =|= (wrap . Await) f
-        Free (Yield (cont, output)) ->
+        Free (Yield (output, cont)) ->
           cont =|= f output
-    Free (Yield (cont, b)) -> do
+    Free (Yield (b, cont)) -> do
       yield b
       up =|= cont
 
@@ -126,7 +126,7 @@ prod *|= pipe = do
           pure u
         Free (input, prod') ->
           prod' *|= f input
-    Free (Yield (cont, b)) -> do 
+    Free (Yield (b, cont)) -> do 
       produce b
       prod *|= cont
 
@@ -150,7 +150,7 @@ pipe =|* con = do
         Free (Await cont) -> do
           input <- consume 
           cont input =|* wrap f
-        Free (Yield (cont, input)) ->
+        Free (Yield (input, cont)) ->
           cont =|* f input
 
 infixr 6 =|*
